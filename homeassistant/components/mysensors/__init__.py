@@ -40,6 +40,7 @@ from .const import (
     MYSENSORS_ON_UNLOAD,
     PLATFORMS_WITH_ENTRY_SUPPORT,
     DevId,
+    DiscoveryInfo,
     SensorType,
 )
 from .device import MySensorsDevice, get_mysensors_devices
@@ -270,7 +271,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 def setup_mysensors_platform(
     hass: HomeAssistant,
     domain: str,  # hass platform name
-    discovery_info: dict[str, list[DevId]],
+    discovery_info: DiscoveryInfo,
     device_class: type[MySensorsDevice] | dict[SensorType, type[MySensorsDevice]],
     device_args: (
         None | tuple
