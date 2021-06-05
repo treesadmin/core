@@ -95,7 +95,7 @@ class MySensorsDevice:
 
         The name will be the same for several entities.
         """
-        return self._node.sketch_name
+        return self._node.sketch_name  # type: ignore[no-any-return]
 
     @property
     def sketch_version(self) -> str:
@@ -103,7 +103,7 @@ class MySensorsDevice:
 
         The name will be the same for several entities.
         """
-        return self._node.sketch_version
+        return self._node.sketch_version  # type: ignore[no-any-return]
 
     @property
     def node_name(self) -> str:
@@ -132,6 +132,26 @@ class MySensorsDevice:
     def name(self) -> str:
         """Return the name of this entity."""
         return f"{self.node_name} {self.child_id}"
+
+    @property
+    def _extra_attributes(self) -> dict[str, Any]:
+        """Return device specific attributes."""
+        node = self.gateway.sensors[self.node_id]
+        child = node.children[self.child_id]
+        attr = {
+            ATTR_BATTERY_LEVEL: node.battery_level,
+            ATTR_HEARTBEAT: node.heartbeat,
+            ATTR_CHILD_ID: self.child_id,
+            ATTR_DESCRIPTION: child.description,
+            ATTR_NODE_ID: self.node_id,
+        }
+
+        set_req = self.gateway.const.SetReq
+
+        for value_type, value in self._values.items():
+            attr[set_req(value_type).name] = value
+
+        return attr
 
     async def async_update(self) -> None:
         """Update the controller with the latest value from a sensor."""
@@ -212,24 +232,11 @@ class MySensorsEntity(MySensorsDevice, Entity):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return entity specific state attributes."""
-        node = self.gateway.sensors[self.node_id]
-        child = node.children[self.child_id]
-        attr = {
-            ATTR_BATTERY_LEVEL: node.battery_level,
-            ATTR_HEARTBEAT: node.heartbeat,
-            ATTR_CHILD_ID: self.child_id,
-            ATTR_DESCRIPTION: child.description,
-            ATTR_NODE_ID: self.node_id,
-        }
+        attr = self._extra_attributes
 
         assert self.platform
         assert self.platform.config_entry
         attr[ATTR_DEVICE] = self.platform.config_entry.data[CONF_DEVICE]
-
-        set_req = self.gateway.const.SetReq
-
-        for value_type, value in self._values.items():
-            attr[set_req(value_type).name] = value
 
         return attr
 
