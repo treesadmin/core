@@ -70,7 +70,7 @@ def set_default_persistence_file(value: dict) -> dict:
     return value
 
 
-def has_all_unique_files(value):
+def has_all_unique_files(value: list[dict]) -> list[dict]:
     """Validate that all persistence files are unique and set if any is set."""
     persistence_files = [gateway[CONF_PERSISTENCE_FILE] for gateway in value]
     schema = vol.Schema(vol.Unique())
@@ -78,17 +78,17 @@ def has_all_unique_files(value):
     return value
 
 
-def is_persistence_file(value):
+def is_persistence_file(value: str) -> str:
     """Validate that persistence file path ends in either .pickle or .json."""
     if value.endswith((".json", ".pickle")):
         return value
     raise vol.Invalid(f"{value} does not end in either `.json` or `.pickle`")
 
 
-def deprecated(key):
+def deprecated(key: str) -> Callable[[dict], dict]:
     """Mark key as deprecated in configuration."""
 
-    def validator(config):
+    def validator(config: dict) -> dict:
         """Check if key is in config, log warning and remove key."""
         if key not in config:
             return config
