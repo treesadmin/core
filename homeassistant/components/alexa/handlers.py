@@ -373,7 +373,6 @@ async def async_api_set_percentage(hass, config, directive, context):
 async def async_api_adjust_percentage(hass, config, directive, context):
     """Process an adjust percentage request."""
     entity = directive.entity
-    percentage_delta = int(directive.payload["percentageDelta"])
     service = None
     data = {ATTR_ENTITY_ID: entity.entity_id}
 
@@ -381,6 +380,7 @@ async def async_api_adjust_percentage(hass, config, directive, context):
         service = fan.SERVICE_SET_PERCENTAGE
         current = entity.attributes.get(fan.ATTR_PERCENTAGE) or 0
 
+        percentage_delta = int(directive.payload["percentageDelta"])
         # set percentage
         percentage = min(100, max(0, percentage_delta + current))
         data[fan.ATTR_PERCENTAGE] = percentage
@@ -765,9 +765,9 @@ async def async_api_set_thermostat_mode(hass, config, directive, context):
 
     data = {ATTR_ENTITY_ID: entity.entity_id}
 
-    ha_preset = next((k for k, v in API_THERMOSTAT_PRESETS.items() if v == mode), None)
-
-    if ha_preset:
+    if ha_preset := next(
+        (k for k, v in API_THERMOSTAT_PRESETS.items() if v == mode), None
+    ):
         presets = entity.attributes.get(climate.ATTR_PRESET_MODES, [])
 
         if ha_preset not in presets:
@@ -848,7 +848,6 @@ async def async_api_set_power_level(hass, config, directive, context):
 async def async_api_adjust_power_level(hass, config, directive, context):
     """Process an AdjustPowerLevel request."""
     entity = directive.entity
-    percentage_delta = int(directive.payload["powerLevelDelta"])
     service = None
     data = {ATTR_ENTITY_ID: entity.entity_id}
 
@@ -856,6 +855,7 @@ async def async_api_adjust_power_level(hass, config, directive, context):
         service = fan.SERVICE_SET_PERCENTAGE
         current = entity.attributes.get(fan.ATTR_PERCENTAGE) or 0
 
+        percentage_delta = int(directive.payload["powerLevelDelta"])
         # set percentage
         percentage = min(100, max(0, percentage_delta + current))
         data[fan.ATTR_PERCENTAGE] = percentage
@@ -1022,14 +1022,11 @@ async def async_api_toggle_on(hass, config, directive, context):
     service = None
     data = {ATTR_ENTITY_ID: entity.entity_id}
 
-    # Fan Oscillating
-    if instance == f"{fan.DOMAIN}.{fan.ATTR_OSCILLATING}":
-        service = fan.SERVICE_OSCILLATE
-        data[fan.ATTR_OSCILLATING] = True
-    else:
-        msg = "Entity does not support directive"
-        raise AlexaInvalidDirectiveError(msg)
+    if instance != f"{fan.DOMAIN}.{fan.ATTR_OSCILLATING}":
+        raise AlexaInvalidDirectiveError("Entity does not support directive")
 
+    service = fan.SERVICE_OSCILLATE
+    data[fan.ATTR_OSCILLATING] = True
     await hass.services.async_call(
         domain, service, data, blocking=False, context=context
     )
@@ -1056,14 +1053,11 @@ async def async_api_toggle_off(hass, config, directive, context):
     service = None
     data = {ATTR_ENTITY_ID: entity.entity_id}
 
-    # Fan Oscillating
-    if instance == f"{fan.DOMAIN}.{fan.ATTR_OSCILLATING}":
-        service = fan.SERVICE_OSCILLATE
-        data[fan.ATTR_OSCILLATING] = False
-    else:
-        msg = "Entity does not support directive"
-        raise AlexaInvalidDirectiveError(msg)
+    if instance != f"{fan.DOMAIN}.{fan.ATTR_OSCILLATING}":
+        raise AlexaInvalidDirectiveError("Entity does not support directive")
 
+    service = fan.SERVICE_OSCILLATE
+    data[fan.ATTR_OSCILLATING] = False
     await hass.services.async_call(
         domain, service, data, blocking=False, context=context
     )
@@ -1381,7 +1375,7 @@ async def async_api_seek(hass, config, directive, context):
         msg = f"{entity} did not return the current media position."
         raise AlexaVideoActionNotPermittedForContentError(msg)
 
-    seek_position = max(int(current_position) + int(position_delta / 1000), 0)
+    seek_position = max(int(current_position) + position_delta // 1000, 0)
 
     media_duration = entity.attributes.get(media_player.ATTR_MEDIA_DURATION)
     if media_duration and 0 < int(media_duration) < seek_position:

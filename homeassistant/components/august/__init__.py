@@ -142,8 +142,9 @@ class AugustData(AugustSubscriberMixin):
     def async_pubnub_message(self, device_id, date_time, message):
         """Process a pubnub message."""
         device = self.get_device_detail(device_id)
-        activities = activities_from_pubnub_message(device, date_time, message)
-        if activities:
+        if activities := activities_from_pubnub_message(
+            device, date_time, message
+        ):
             self.activity_stream.async_process_newer_device_activities(activities)
             self.async_signal_device_id_update(device.device_id)
         self.activity_stream.async_schedule_house_id_refresh(device.house_id)

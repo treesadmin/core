@@ -196,7 +196,7 @@ async def async_get_zeroconf(hass: HomeAssistant) -> dict[str, list[dict[str, st
                 typ = entry["type"]
                 entry_without_type = entry.copy()
                 del entry_without_type["type"]
-                data.update(entry_without_type)
+                data |= entry_without_type
             else:
                 typ = entry
 
@@ -213,8 +213,10 @@ async def async_get_dhcp(hass: HomeAssistant) -> list[dict[str, str]]:
     for integration in integrations.values():
         if not integration.dhcp:
             continue
-        for entry in integration.dhcp:
-            dhcp.append({"domain": integration.domain, **entry})
+        dhcp.extend(
+            {"domain": integration.domain, **entry}
+            for entry in integration.dhcp
+        )
 
     return dhcp
 

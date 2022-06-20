@@ -31,7 +31,6 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
 
 def setup_platform(hass, config, add_entities, discovery_info=None):
     """Set up the Aurora ABB PowerOne device."""
-    devices = []
     comport = config[CONF_DEVICE]
     address = config[CONF_ADDRESS]
     name = config[CONF_NAME]
@@ -39,7 +38,7 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
     _LOGGER.debug("Intitialising com port=%s address=%s", comport, address)
     client = AuroraSerialClient(address, comport, parity="N", timeout=1)
 
-    devices.append(AuroraABBSolarPVMonitorSensor(client, name, "Power"))
+    devices = [AuroraABBSolarPVMonitorSensor(client, name, "Power")]
     add_entities(devices, True)
 
 

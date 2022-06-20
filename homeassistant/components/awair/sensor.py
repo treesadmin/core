@@ -67,9 +67,11 @@ async def async_setup_entry(
         if result.air_data:
             sensors.append(AwairSensor(API_SCORE, result.device, coordinator))
             device_sensors = result.air_data.sensors.keys()
-            for sensor in device_sensors:
-                if sensor in SENSOR_TYPES:
-                    sensors.append(AwairSensor(sensor, result.device, coordinator))
+            sensors.extend(
+                AwairSensor(sensor, result.device, coordinator)
+                for sensor in device_sensors
+                if sensor in SENSOR_TYPES
+            )
 
             # The "DUST" sensor for Awair is a combo pm2.5/pm10 sensor only
             # present on first-gen devices in lieu of separate pm2.5/pm10 sensors.
@@ -78,8 +80,10 @@ async def async_setup_entry(
             # that data - because we can't really tell what kind of particles the
             # "DUST" sensor actually detected. However, it's still useful data.
             if API_DUST in device_sensors:
-                for alias_kind in DUST_ALIASES:
-                    sensors.append(AwairSensor(alias_kind, result.device, coordinator))
+                sensors.extend(
+                    AwairSensor(alias_kind, result.device, coordinator)
+                    for alias_kind in DUST_ALIASES
+                )
 
     async_add_entities(sensors)
 
@@ -156,7 +160,7 @@ class AwairSensor(CoordinatorEntity, SensorEntity):
         else:
             state = self._air_data.sensors[self._kind]
 
-        if self._kind == API_VOC or self._kind == API_SCORE:
+        if self._kind in [API_VOC, API_SCORE]:
             return round(state)
 
         if self._kind == API_TEMP:

@@ -26,10 +26,11 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     entities = []
 
     for device in data.abode.get_devices(generic_type=CONST.TYPE_SENSOR):
-        for sensor_type in SENSOR_TYPES:
-            if sensor_type not in device.get_value(CONST.STATUSES_KEY):
-                continue
-            entities.append(AbodeSensor(data, device, sensor_type))
+        entities.extend(
+            AbodeSensor(data, device, sensor_type)
+            for sensor_type in SENSOR_TYPES
+            if sensor_type in device.get_value(CONST.STATUSES_KEY)
+        )
 
     async_add_entities(entities)
 

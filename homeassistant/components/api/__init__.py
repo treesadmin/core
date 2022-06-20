@@ -241,8 +241,7 @@ class APIEntityStateView(HomeAssistantView):
         if not user.permissions.check_entity(entity_id, POLICY_READ):
             raise Unauthorized(entity_id=entity_id)
 
-        state = request.app["hass"].states.get(entity_id)
-        if state:
+        if state := request.app["hass"].states.get(entity_id):
             return self.json(state)
         return self.json_message("Entity not found.", HTTP_NOT_FOUND)
 
@@ -328,9 +327,7 @@ class APIEventView(HomeAssistantView):
         # We will try to convert state dicts back to State objects
         if event_type == ha.EVENT_STATE_CHANGED and event_data:
             for key in ("old_state", "new_state"):
-                state = ha.State.from_dict(event_data.get(key))
-
-                if state:
+                if state := ha.State.from_dict(event_data.get(key)):
                     event_data[key] = state
 
         request.app["hass"].bus.async_fire(
@@ -379,11 +376,10 @@ class APIDomainServicesView(HomeAssistantView):
         except (vol.Invalid, ServiceNotFound) as ex:
             raise HTTPBadRequest() from ex
 
-        changed_states = []
+        changed_states = [
+            state for state in hass.states.async_all() if state.context is context
+        ]
 
-        for state in hass.states.async_all():
-            if state.context is context:
-                changed_states.append(state)
 
         return self.json(changed_states)
 

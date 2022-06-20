@@ -50,9 +50,9 @@ async def async_setup_entry(
         COORDINATOR
     ]
 
-    sensors: list[AccuWeatherSensor] = []
-    for sensor in SENSOR_TYPES:
-        sensors.append(AccuWeatherSensor(name, sensor, coordinator))
+    sensors: list[AccuWeatherSensor] = [
+        AccuWeatherSensor(name, sensor, coordinator) for sensor in SENSOR_TYPES
+    ]
 
     if coordinator.forecast:
         for sensor in FORECAST_SENSOR_TYPES:

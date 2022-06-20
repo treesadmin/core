@@ -56,13 +56,13 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
     home_mode_name = config[CONF_HOME_MODE_NAME]
     away_mode_name = config[CONF_AWAY_MODE_NAME]
     night_mode_name = config[CONF_NIGHT_MODE_NAME]
-    base_stations = []
-    for base_station in arlo.base_stations:
-        base_stations.append(
-            ArloBaseStation(
-                base_station, home_mode_name, away_mode_name, night_mode_name
-            )
+    base_stations = [
+        ArloBaseStation(
+            base_station, home_mode_name, away_mode_name, night_mode_name
         )
+        for base_station in arlo.base_stations
+    ]
+
     add_entities(base_stations, True)
 
 
@@ -108,8 +108,7 @@ class ArloBaseStation(AlarmControlPanelEntity):
     def update(self):
         """Update the state of the device."""
         _LOGGER.debug("Updating Arlo Alarm Control Panel %s", self.name)
-        mode = self._base_station.mode
-        if mode:
+        if mode := self._base_station.mode:
             self._state = self._get_state_from_mode(mode)
         else:
             self._state = None

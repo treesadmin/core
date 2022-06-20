@@ -77,14 +77,14 @@ async def async_setup(hass, config):
     if conf is None:
         return True
 
-    # save the options from config yaml
-    options = {}
     mode = conf.get(CONF_MODE, MODE_ROUTER)
-    for name, value in conf.items():
-        if name in ([CONF_DNSMASQ, CONF_INTERFACE, CONF_REQUIRE_IP]):
-            if name == CONF_REQUIRE_IP and mode != MODE_AP:
-                continue
-            options[name] = value
+    options = {
+        name: value
+        for name, value in conf.items()
+        if name in ([CONF_DNSMASQ, CONF_INTERFACE, CONF_REQUIRE_IP])
+        and (name != CONF_REQUIRE_IP or mode == MODE_AP)
+    }
+
     hass.data[DOMAIN] = {"yaml_options": options}
 
     # check if already configured
@@ -92,9 +92,7 @@ async def async_setup(hass, config):
     if DOMAIN in domains_list:
         return True
 
-    # remove not required config keys
-    pub_key = conf.pop(CONF_PUB_KEY, "")
-    if pub_key:
+    if pub_key := conf.pop(CONF_PUB_KEY, ""):
         conf[CONF_SSH_KEY] = pub_key
 
     conf.pop(CONF_REQUIRE_IP, True)

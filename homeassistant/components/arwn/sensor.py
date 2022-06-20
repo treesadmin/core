@@ -26,10 +26,7 @@ def discover_sensors(topic, payload):
     domain = parts[1]
     if domain == "temperature":
         name = parts[2]
-        if unit == "F":
-            unit = TEMP_FAHRENHEIT
-        else:
-            unit = TEMP_CELSIUS
+        unit = TEMP_FAHRENHEIT if unit == "F" else TEMP_CELSIUS
         return ArwnSensor(topic, name, "temp", unit)
     if domain == "moisture":
         name = f"{parts[2]} Moisture"
@@ -39,20 +36,32 @@ def discover_sensors(topic, payload):
             return ArwnSensor(
                 topic, "Rain Since Midnight", "since_midnight", "in", "mdi:water"
             )
-        return (
-            ArwnSensor(topic + "/total", "Total Rainfall", "total", unit, "mdi:water"),
-            ArwnSensor(topic + "/rate", "Rainfall Rate", "rate", unit, "mdi:water"),
+        return ArwnSensor(
+            f"{topic}/total", "Total Rainfall", "total", unit, "mdi:water"
+        ), ArwnSensor(
+            f"{topic}/rate", "Rainfall Rate", "rate", unit, "mdi:water"
         )
+
     if domain == "barometer":
         return ArwnSensor(topic, "Barometer", "pressure", unit, "mdi:thermometer-lines")
     if domain == "wind":
         return (
             ArwnSensor(
-                topic + "/speed", "Wind Speed", "speed", unit, "mdi:speedometer"
+                f"{topic}/speed",
+                "Wind Speed",
+                "speed",
+                unit,
+                "mdi:speedometer",
             ),
-            ArwnSensor(topic + "/gust", "Wind Gust", "gust", unit, "mdi:speedometer"),
             ArwnSensor(
-                topic + "/dir", "Wind Direction", "direction", DEGREE, "mdi:compass"
+                f"{topic}/gust", "Wind Gust", "gust", unit, "mdi:speedometer"
+            ),
+            ArwnSensor(
+                f"{topic}/dir",
+                "Wind Direction",
+                "direction",
+                DEGREE,
+                "mdi:compass",
             ),
         )
 
@@ -132,7 +141,7 @@ class ArwnSensor(SensorEntity):
     def set_event(self, event):
         """Update the sensor with the most recent event."""
         self.event = {}
-        self.event.update(event)
+        self.event |= event
         self.async_write_ha_state()
 
     @property

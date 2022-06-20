@@ -142,7 +142,7 @@ def callback(func: CALLABLE_T) -> CALLABLE_T:
 
 def is_callback(func: Callable[..., Any]) -> bool:
     """Check if function is safe to be called in the event loop."""
-    return getattr(func, "_hass_callback", False) is True
+    return getattr(func, "_hass_callback", False)
 
 
 @enum.unique
@@ -894,7 +894,7 @@ class State:
         validate_entity_id: bool | None = True,
     ) -> None:
         """Initialize a new state."""
-        state = str(state)
+        state = state
 
         if validate_entity_id and not valid_entity_id(entity_id):
             raise InvalidEntityFormatError(
@@ -1195,7 +1195,7 @@ class StateMachine:
         This method must be run in the event loop.
         """
         entity_id = entity_id.lower()
-        new_state = str(new_state)
+        new_state = new_state
         attributes = attributes or {}
         old_state = self._states.get(entity_id)
         if old_state is None:
@@ -1610,10 +1610,7 @@ class Config:
         thepath = pathlib.Path(path)
         try:
             # The file path does not have to exist (it's parent should)
-            if thepath.exists():
-                thepath = thepath.resolve()
-            else:
-                thepath = thepath.parent.resolve()
+            thepath = thepath.resolve() if thepath.exists() else thepath.parent.resolve()
         except (FileNotFoundError, RuntimeError, PermissionError):
             return False
 
@@ -1654,9 +1651,7 @@ class Config:
 
     def set_time_zone(self, time_zone_str: str) -> None:
         """Help to set the time zone."""
-        time_zone = dt_util.get_time_zone(time_zone_str)
-
-        if time_zone:
+        if time_zone := dt_util.get_time_zone(time_zone_str):
             self.time_zone = time_zone_str
             dt_util.set_default_time_zone(time_zone)
         else:

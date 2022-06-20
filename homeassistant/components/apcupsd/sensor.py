@@ -185,9 +185,7 @@ class APCUPSdSensor(SensorEntity):
     @property
     def unit_of_measurement(self):
         """Return the unit of measurement of this entity, if any."""
-        if not self._unit:
-            return self._inferred_unit
-        return self._unit
+        return self._unit or self._inferred_unit
 
     def update(self):
         """Get the latest status and use it to update our sensor state."""

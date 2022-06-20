@@ -53,29 +53,28 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
         _LOGGER.error("No route to device at %s", resource)
         return False
 
-    dev = []
     pins = config[CONF_PINS]
-    for pinnum, pin in pins.items():
-        dev.append(
-            ArestSwitchPin(
-                resource,
-                config.get(CONF_NAME, response.json()[CONF_NAME]),
-                pin.get(CONF_NAME),
-                pinnum,
-                pin[CONF_INVERT],
-            )
+    dev = [
+        ArestSwitchPin(
+            resource,
+            config.get(CONF_NAME, response.json()[CONF_NAME]),
+            pin.get(CONF_NAME),
+            pinnum,
+            pin[CONF_INVERT],
         )
+        for pinnum, pin in pins.items()
+    ]
 
     functions = config[CONF_FUNCTIONS]
-    for funcname, func in functions.items():
-        dev.append(
-            ArestSwitchFunction(
-                resource,
-                config.get(CONF_NAME, response.json()[CONF_NAME]),
-                func.get(CONF_NAME),
-                funcname,
-            )
+    dev.extend(
+        ArestSwitchFunction(
+            resource,
+            config.get(CONF_NAME, response.json()[CONF_NAME]),
+            func.get(CONF_NAME),
+            funcname,
         )
+        for funcname, func in functions.items()
+    )
 
     add_entities(dev)
 

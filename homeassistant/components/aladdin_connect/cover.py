@@ -102,9 +102,7 @@ class AladdinDevice(CoverEntity):
     @property
     def is_closed(self) -> bool | None:
         """Return None if status is unknown, True if closed, else False."""
-        if self._status is None:
-            return None
-        return self._status == STATE_CLOSED
+        return None if self._status is None else self._status == STATE_CLOSED
 
     def close_cover(self, **kwargs: Any) -> None:
         """Issue close command to cover."""

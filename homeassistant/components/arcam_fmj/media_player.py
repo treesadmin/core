@@ -90,14 +90,11 @@ class ArcamFmj(MediaPlayerEntity):
     def _get_2ch(self):
         """Return if source is 2 channel or not."""
         audio_format, _ = self._state.get_incoming_audio_format()
-        return bool(
-            audio_format
-            in (
-                IncomingAudioFormat.PCM,
-                IncomingAudioFormat.ANALOGUE_DIRECT,
-                IncomingAudioFormat.UNDETECTED,
-                None,
-            )
+        return audio_format in (
+            IncomingAudioFormat.PCM,
+            IncomingAudioFormat.ANALOGUE_DIRECT,
+            IncomingAudioFormat.UNDETECTED,
+            None,
         )
 
     @property
@@ -136,9 +133,7 @@ class ArcamFmj(MediaPlayerEntity):
     @property
     def state(self):
         """Return the state of the device."""
-        if self._state.get_power():
-            return STATE_ON
-        return STATE_OFF
+        return STATE_ON if self._state.get_power() else STATE_OFF
 
     @property
     def supported_features(self):
@@ -265,7 +260,7 @@ class ArcamFmj(MediaPlayerEntity):
             for preset in presets.values()
         ]
 
-        root = BrowseMedia(
+        return BrowseMedia(
             title="Root",
             media_class=MEDIA_CLASS_DIRECTORY,
             media_content_id="root",
@@ -274,8 +269,6 @@ class ArcamFmj(MediaPlayerEntity):
             can_expand=True,
             children=radio,
         )
-
-        return root
 
     async def async_play_media(self, media_type: str, media_id: str, **kwargs) -> None:
         """Play media."""
@@ -344,50 +337,39 @@ class ArcamFmj(MediaPlayerEntity):
     def media_content_type(self):
         """Content type of current playing media."""
         source = self._state.get_source()
-        if source == SourceCodes.DAB:
-            value = MEDIA_TYPE_MUSIC
-        elif source == SourceCodes.FM:
-            value = MEDIA_TYPE_MUSIC
-        else:
-            value = None
-        return value
+        return (
+            MEDIA_TYPE_MUSIC
+            if source in [SourceCodes.DAB, SourceCodes.FM]
+            else None
+        )
 
     @property
     def media_content_id(self):
         """Content type of current playing media."""
         source = self._state.get_source()
-        if source in (SourceCodes.DAB, SourceCodes.FM):
-            preset = self._state.get_tuner_preset()
-            if preset:
-                value = f"preset:{preset}"
-            else:
-                value = None
-        else:
-            value = None
-
-        return value
+        return (
+            f"preset:{preset}"
+            if source in (SourceCodes.DAB, SourceCodes.FM)
+            and (preset := self._state.get_tuner_preset())
+            else None
+        )
 
     @property
     def media_channel(self):
         """Channel currently playing."""
         source = self._state.get_source()
         if source == SourceCodes.DAB:
-            value = self._state.get_dab_station()
+            return self._state.get_dab_station()
         elif source == SourceCodes.FM:
-            value = self._state.get_rds_information()
+            return self._state.get_rds_information()
         else:
-            value = None
-        return value
+            return None
 
     @property
     def media_artist(self):
         """Artist of current playing media, music track only."""
         source = self._state.get_source()
-        if source == SourceCodes.DAB:
-            value = self._state.get_dls_pdt()
-        else:
-            value = None
-        return value
+        return self._state.get_dls_pdt() if source == SourceCodes.DAB else None
 
     @property
     def media_title(self):
@@ -396,10 +378,8 @@ class ArcamFmj(MediaPlayerEntity):
         if source is None:
             return None
 
-        channel = self.media_channel
-
-        if channel:
-            value = f"{source.name} - {channel}"
-        else:
-            value = source.name
-        return value
+        return (
+            f"{source.name} - {channel}"
+            if (channel := self.media_channel)
+            else source.name
+        )

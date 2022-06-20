@@ -212,7 +212,7 @@ class AsusWrtRouter:
             CONF_INTERFACE: DEFAULT_INTERFACE,
             CONF_REQUIRE_IP: True,
         }
-        self._options.update(entry.options)
+        self._options |= entry.options
 
     async def setup(self) -> None:
         """Set up a AsusWrt router."""

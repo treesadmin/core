@@ -202,9 +202,7 @@ class AlexaCapabilityResource:
 
     def __init__(self, labels):
         """Initialize an Alexa resource."""
-        self._resource_labels = []
-        for label in labels:
-            self._resource_labels.append(label)
+        self._resource_labels = list(labels)
 
     def serialize_capability_resources(self):
         """Return capabilityResources object serialized for an API response."""

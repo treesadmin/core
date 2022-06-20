@@ -189,12 +189,14 @@ class AuthStore:
             assert self._users is not None
 
         for user in self._users.values():
-            found = None
-
-            for index, cred in enumerate(user.credentials):
-                if cred is credentials:
-                    found = index
-                    break
+            found = next(
+                (
+                    index
+                    for index, cred in enumerate(user.credentials)
+                    if cred is credentials
+                ),
+                None,
+            )
 
             if found is not None:
                 user.credentials.pop(found)
@@ -451,9 +453,7 @@ class AuthStore:
                 else:
                     token_type = models.TOKEN_TYPE_NORMAL
 
-            # old refresh_token don't have last_used_at (pre-0.78)
-            last_used_at_str = rt_dict.get("last_used_at")
-            if last_used_at_str:
+            if last_used_at_str := rt_dict.get("last_used_at"):
                 last_used_at = dt_util.parse_datetime(last_used_at_str)
             else:
                 last_used_at = None

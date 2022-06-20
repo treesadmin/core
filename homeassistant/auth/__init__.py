@@ -71,8 +71,7 @@ async def auth_manager_from_config(
     for module in modules:
         module_hash[module.id] = module
 
-    manager = AuthManager(hass, store, provider_hash, module_hash)
-    return manager
+    return AuthManager(hass, store, provider_hash, module_hash)
 
 
 class AuthManagerFlowManager(data_entry_flow.FlowManager):
@@ -279,12 +278,10 @@ class AuthManager:
 
     async def async_remove_user(self, user: models.User) -> None:
         """Remove a user."""
-        tasks = [
+        if tasks := [
             self.async_remove_credentials(credentials)
             for credentials in user.credentials
-        ]
-
-        if tasks:
+        ]:
             await asyncio.wait(tasks)
 
         await self._store.async_remove_user(user)
@@ -498,8 +495,7 @@ class AuthManager:
 
         Will raise InvalidAuthError on errors.
         """
-        provider = self._async_resolve_provider(refresh_token)
-        if provider:
+        if provider := self._async_resolve_provider(refresh_token):
             provider.async_validate_refresh_token(refresh_token, remote_ip)
 
     async def async_validate_access_token(
@@ -549,8 +545,6 @@ class AuthManager:
         A user should be an owner if it is the first non-system user that is
         being created.
         """
-        for user in await self._store.async_get_users():
-            if not user.system_generated:
-                return False
-
-        return True
+        return all(
+            user.system_generated for user in await self._store.async_get_users()
+        )

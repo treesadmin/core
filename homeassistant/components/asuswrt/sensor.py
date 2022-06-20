@@ -89,13 +89,13 @@ async def async_setup_entry(
     for sensor_data in router.sensors_coordinator.values():
         coordinator = sensor_data[KEY_COORDINATOR]
         sensors = sensor_data[KEY_SENSORS]
-        for sensor_key in sensors:
-            if sensor_key in CONNECTION_SENSORS:
-                entities.append(
-                    AsusWrtSensor(
-                        coordinator, router, sensor_key, CONNECTION_SENSORS[sensor_key]
-                    )
-                )
+        entities.extend(
+            AsusWrtSensor(
+                coordinator, router, sensor_key, CONNECTION_SENSORS[sensor_key]
+            )
+            for sensor_key in sensors
+            if sensor_key in CONNECTION_SENSORS
+        )
 
     async_add_entities(entities, True)
 

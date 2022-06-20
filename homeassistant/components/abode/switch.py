@@ -19,11 +19,15 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     entities = []
 
     for device_type in DEVICE_TYPES:
-        for device in data.abode.get_devices(generic_type=device_type):
-            entities.append(AbodeSwitch(data, device))
+        entities.extend(
+            AbodeSwitch(data, device)
+            for device in data.abode.get_devices(generic_type=device_type)
+        )
 
-    for automation in data.abode.get_automations():
-        entities.append(AbodeAutomationSwitch(data, automation))
+    entities.extend(
+        AbodeAutomationSwitch(data, automation)
+        for automation in data.abode.get_automations()
+    )
 
     async_add_entities(entities)
 

@@ -215,10 +215,7 @@ class BayesianBinarySensor(BinarySensorEntity):
                 should_trigger = result_as_boolean(result)
 
             for obs in self.observations_by_template[template]:
-                if should_trigger:
-                    obs_entry = {"entity_id": entity, **obs}
-                else:
-                    obs_entry = None
+                obs_entry = {"entity_id": entity, **obs} if should_trigger else None
                 self.current_observations[obs["id"]] = obs_entry
 
             if event:
@@ -243,7 +240,7 @@ class BayesianBinarySensor(BinarySensorEntity):
     @callback
     def _recalculate_and_write_state(self):
         self.probability = self._calculate_new_probability()
-        self._deviation = bool(self.probability >= self._probability_threshold)
+        self._deviation = self.probability >= self._probability_threshold
         self.async_write_ha_state()
 
     def _initialize_current_observations(self):
@@ -258,9 +255,7 @@ class BayesianBinarySensor(BinarySensorEntity):
         for entity_obs in self.observations_by_entity[entity]:
             platform = entity_obs["platform"]
 
-            should_trigger = self.observation_handlers[platform](entity_obs)
-
-            if should_trigger:
+            if should_trigger := self.observation_handlers[platform](entity_obs):
                 obs_entry = {"entity_id": entity, **entity_obs}
             else:
                 obs_entry = None

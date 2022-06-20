@@ -111,17 +111,16 @@ async def _async_process_dependencies(
         if dep not in hass.config.components
     }
 
-    after_dependencies_tasks = {}
     to_be_loaded = hass.data.get(DATA_SETUP_DONE, {})
-    for dep in integration.after_dependencies:
+    after_dependencies_tasks = {
+        dep: hass.loop.create_task(to_be_loaded[dep].wait())
+        for dep in integration.after_dependencies
         if (
             dep not in dependencies_tasks
             and dep in to_be_loaded
             and dep not in hass.config.components
-        ):
-            after_dependencies_tasks[dep] = hass.loop.create_task(
-                to_be_loaded[dep].wait()
-            )
+        )
+    }
 
     if not dependencies_tasks and not after_dependencies_tasks:
         return True
@@ -144,11 +143,11 @@ async def _async_process_dependencies(
             *dependencies_tasks.values(), *after_dependencies_tasks.values()
         )
 
-    failed = [
-        domain for idx, domain in enumerate(dependencies_tasks) if not results[idx]
-    ]
-
-    if failed:
+    if failed := [
+        domain
+        for idx, domain in enumerate(dependencies_tasks)
+        if not results[idx]
+    ]:
         _LOGGER.error(
             "Unable to set up dependencies of %s. Setup failed for dependencies: %s",
             integration.domain,

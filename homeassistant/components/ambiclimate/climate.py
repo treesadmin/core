@@ -97,8 +97,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     async def send_comfort_feedback(service):
         """Send comfort feedback."""
         device_name = service.data[ATTR_NAME]
-        device = data_connection.find_device_by_room_name(device_name)
-        if device:
+        if device := data_connection.find_device_by_room_name(device_name):
             await device.set_comfort_feedback(service.data[ATTR_VALUE])
 
     hass.services.async_register(
@@ -111,8 +110,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     async def set_comfort_mode(service):
         """Set comfort mode."""
         device_name = service.data[ATTR_NAME]
-        device = data_connection.find_device_by_room_name(device_name)
-        if device:
+        if device := data_connection.find_device_by_room_name(device_name):
             await device.set_comfort_mode()
 
     hass.services.async_register(
@@ -122,8 +120,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     async def set_temperature_mode(service):
         """Set temperature mode."""
         device_name = service.data[ATTR_NAME]
-        device = data_connection.find_device_by_room_name(device_name)
-        if device:
+        if device := data_connection.find_device_by_room_name(device_name):
             await device.set_temperature_mode(service.data[ATTR_VALUE])
 
     hass.services.async_register(

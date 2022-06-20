@@ -429,9 +429,10 @@ class ADBDevice(MediaPlayerEntity):
         self._screencap = screencap
 
         # ADB exceptions to catch
-        if not self.aftv.adb_server_ip:
-            # Using "adb_shell" (Python ADB implementation)
-            self.exceptions = (
+        self.exceptions = (
+            (ConnectionResetError, RuntimeError)
+            if self.aftv.adb_server_ip
+            else (
                 AdbTimeoutError,
                 BrokenPipeError,
                 ConnectionResetError,
@@ -441,9 +442,7 @@ class ADBDevice(MediaPlayerEntity):
                 InvalidResponseError,
                 TcpTimeoutException,
             )
-        else:
-            # Using "pure-python-adb" (communicate with ADB server)
-            self.exceptions = (ConnectionResetError, RuntimeError)
+        )
 
         # Property attributes
         self._adb_response = None
@@ -584,8 +583,7 @@ class ADBDevice(MediaPlayerEntity):
     @adb_decorator()
     async def adb_command(self, cmd):
         """Send an ADB command to an Android TV / Fire TV device."""
-        key = self._keys.get(cmd)
-        if key:
+        if key := self._keys.get(cmd):
             await self.aftv.adb_shell(f"input keyevent {key}")
             return
 
@@ -690,10 +688,11 @@ class AndroidTVDevice(ADBDevice):
         if running_apps:
             sources = [
                 self._app_id_to_name.get(
-                    app_id, app_id if not self._exclude_unnamed_apps else None
+                    app_id, None if self._exclude_unnamed_apps else app_id
                 )
                 for app_id in running_apps
             ]
+
             self._sources = [source for source in sources if source]
         else:
             self._sources = None
@@ -769,10 +768,11 @@ class FireTVDevice(ADBDevice):
         if running_apps:
             sources = [
                 self._app_id_to_name.get(
-                    app_id, app_id if not self._exclude_unnamed_apps else None
+                    app_id, None if self._exclude_unnamed_apps else app_id
                 )
                 for app_id in running_apps
             ]
+
             self._sources = [source for source in sources if source]
         else:
             self._sources = None

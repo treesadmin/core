@@ -328,18 +328,16 @@ class FlowHandler:
     @property
     def source(self) -> str | None:
         """Source that initialized the flow."""
-        if not hasattr(self, "context"):
-            return None
-
-        return self.context.get("source", None)
+        return self.context.get("source", None) if hasattr(self, "context") else None
 
     @property
     def show_advanced_options(self) -> bool:
         """If we should show advanced options."""
-        if not hasattr(self, "context"):
-            return False
-
-        return self.context.get("show_advanced_options", False)
+        return (
+            self.context.get("show_advanced_options", False)
+            if hasattr(self, "context")
+            else False
+        )
 
     @callback
     def async_show_form(
